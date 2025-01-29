@@ -16,6 +16,7 @@
   - [Использование](#использование)
     - [GET /v1/models](#get-v1models)
     - [POST /v1/chat/completions](#post-v1chatcompletions)
+    - [POST /v1/images/generations](#post-v1imagesgenerations)
   - [Логирование](#логирование)
   - [Роадмап](#роадмап)
     - [Доступные методы](#доступные-методы)
@@ -138,7 +139,7 @@
    После запуска приложения перейдите по адресу:
 
    ```
-   http://localhost:8080/swagger-ui.intex.html
+   http://localhost:8080/swagger-ui/index.html
    ```
 
    Здесь доступна интерактивная документация API для изучения и тестирования эндпоинтов.
@@ -224,6 +225,48 @@ Authorization: Bearer YOUR_PROXY_API_KEY
 }
 ```
 
+### POST /v1/images/generations
+
+Генерация изображений на основе текстового prompt.
+
+**Запрос:**
+
+```http
+POST /openai/v1/images/generations HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+Authorization: Bearer YOUR_PROXY_API_KEY
+
+{
+  "model": "dall-e-3",
+  "prompt": "белый сиамский кот",
+  "n": 1,
+  "size": "1024x1024",
+  "quality": "hd"
+}
+```
+
+**Ответ:**
+
+```json
+{
+  "data": [
+    {
+      "url": "https://example.com/generated-image.png",
+      "base64": "iVBORw0KGgoAAAANSUhEUgAA..."
+    }
+  ]
+}
+```
+
+**Примечания:**
+
+- **`model`:** Укажите модель для генерации, например, `dall-e-3` или `dall-e-2`.
+- **`prompt`:** Текстовый запрос для генерации изображения.
+- **`n`:** Количество изображений для генерации (до 10 для DALL·E 2).
+- **`size`:** Размер изображения, например, `1024x1024`, `1024x1792`, `1792x1024` и т.д..
+- **`quality`:** Опциональный параметр, например, `"hd"` для повышения детализации.
+
 ## Логирование
 
 Все взаимодействия с ProxyAPI логируются в файле `proxyapi.log`, находящемся в директории `logs`. Конфигурация логирования управляется файлом `logback-spring.xml` в `src/main/resources/`. Логи содержат подробную информацию о запросах и ответах, что облегчает мониторинг и отладку.
@@ -236,11 +279,13 @@ Authorization: Bearer YOUR_PROXY_API_KEY
 
 - [x] `/v1/models`
 - [x] `/v1/chat/completions`
+- [x] `/v1/images/generations`
+- [ ] `/v1/images/edits`
+- [ ] `/v1/images/variations`
 - [ ] `/v1/embeddings`
 - [ ] `/v1/files` (доступно в подписке ProxyAPI Pro)
 - [ ] `/v1/assistants` (доступно в подписке ProxyAPI Pro)
 - [ ] `/v1/threads/*` (доступно в подписке ProxyAPI Pro)
-- [ ] `/v1/images/*`
 - [ ] `/v1/audio/*`
 
 #### Google
@@ -280,7 +325,6 @@ Authorization: Bearer YOUR_PROXY_API_KEY
    ```
 
 5. **Откройте Pull Request**
-
 
 ## Лицензия
 
