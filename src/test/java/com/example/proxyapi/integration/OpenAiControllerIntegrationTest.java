@@ -1,8 +1,6 @@
 package com.example.proxyapi.integration;
 
-import com.example.proxyapi.dto.openai.ChatCompletionRequestInputDTO;
-import com.example.proxyapi.dto.openai.ChatCompletionResponseDTO;
-import com.example.proxyapi.dto.openai.MessageDTO;
+import com.example.proxyapi.dto.openai.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -177,6 +175,81 @@ class OpenAiControllerIntegrationTest {
         @DisplayName("POST /v1/chat/completions - Модель gpt-3.5-turbo")
         void testCreateChatCompletionWithGpt35Turbo() {
             performPostTest("gpt-3.5-turbo");
+        }
+    }
+
+    /**
+     * Вложенный класс для тестирования POST /v1/images/generations.
+     */
+    @Nested
+    @DisplayName("POST /v1/images/generations - Интеграционные тесты генерации изображений")
+    class PostImageGenerationsIntegrationTests {
+
+        /**
+         * Общий метод для выполнения POST-запроса и проверки статуса ответа.
+         *
+         * @param model   Название модели.
+         * @param prompt  Текстовый prompt для генерации изображения.
+         * @param n       Количество изображений для генерации.
+         * @param size    Размер изображения.
+         * @param quality Качество изображения (опционально).
+         */
+        private void performGenerateImageTest(String model, String prompt, int n, String size, String quality) {
+            String url = getBaseUrl() + "/images/generations";
+
+            // Подготовка запроса
+            ImageGenerationRequestDTO requestDTO = new ImageGenerationRequestDTO(
+                    model,
+                    prompt,
+                    n,
+                    size,
+                    quality
+            );
+
+            // Установка заголовков
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(proxyApiKey);
+            HttpEntity<ImageGenerationRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
+
+            // Выполнение POST-запроса
+            ResponseEntity<ImageGenerationResponseDTO> response = restTemplate.postForEntity(
+                    url,
+                    requestEntity,
+                    ImageGenerationResponseDTO.class
+            );
+
+            // Проверка статуса ответа
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // Проверка наличия тела ответа
+            ImageGenerationResponseDTO responseBody = response.getBody();
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getData()).isNotEmpty();
+
+            // Проверка структуры данных в ответе
+            for (ImageDataDTO imageData : responseBody.getData()) {
+                assertThat(imageData.getUrl()).isNotEmpty();
+                // Проверка валидности URL
+                assertThat(imageData.getUrl()).startsWith("http");
+
+                if (quality != null && quality.equalsIgnoreCase("hd")) {
+                    // В данном примере просто проверяем наличие base64
+                    assertThat(imageData.getBase64()).isNotEmpty();
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("POST /v1/images/generations - Генерация изображений с моделью dall-e-2")
+        void testGenerateMultipleImagesWithDallE2() {
+            performGenerateImageTest(
+                    "dall-e-2",
+                    "яркий закат над океаном",
+                    2,
+                    "256x256",
+                    null // quality не требуется для dall-e-2
+            );
         }
     }
 }
