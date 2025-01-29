@@ -1,8 +1,6 @@
 package com.example.proxyapi.service;
 
-import com.example.proxyapi.dto.openai.ChatCompletionRequestDTO;
-import com.example.proxyapi.dto.openai.ChatCompletionRequestInputDTO;
-import com.example.proxyapi.dto.openai.ChatCompletionResponseDTO;
+import com.example.proxyapi.dto.openai.*;
 import com.example.proxyapi.exception.ProxyApiException;
 import com.example.proxyapi.utils.ProxyApiHttpClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,6 +83,32 @@ public class OpenAiService {
         } catch (IOException | InterruptedException e) {
             log.error("Ошибка при создании chat-completion (OpenAI): {}", e.getMessage(), e);
             throw new ProxyApiException("Ошибка при создании chat-completion (OpenAI)", e);
+        }
+    }
+
+    /**
+     * Сгенерировать изображение на основе текста.
+     *
+     * @param requestDTO Запрос с параметрами генерации
+     * @return Ответ от OpenAI как ImageGenerationResponseDTO
+     */
+    public ImageGenerationResponseDTO generateImage(ImageGenerationRequestDTO requestDTO) {
+        String url = BASE_URL + "/v1/images/generations";
+        try {
+            // Сериализация запроса в JSON
+            String jsonRequest = objectMapper.writeValueAsString(requestDTO);
+            log.debug("Sending POST request to {} with body: {}", url, jsonRequest);
+
+            // Отправка POST-запроса
+            String jsonResponse = ProxyApiHttpClient.sendPost(url, jsonRequest, proxyApiKey);
+            log.debug("Received response: {}", jsonResponse);
+
+            // Десериализация ответа в DTO
+            return objectMapper.readValue(jsonResponse, ImageGenerationResponseDTO.class);
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Ошибка при генерации изображения (OpenAI): {}", e.getMessage(), e);
+            throw new ProxyApiException("Ошибка при генерации изображения (OpenAI)", e);
         }
     }
 }
