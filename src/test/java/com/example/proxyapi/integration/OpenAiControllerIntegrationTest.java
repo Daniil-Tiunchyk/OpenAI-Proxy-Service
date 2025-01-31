@@ -252,4 +252,87 @@ class OpenAiControllerIntegrationTest {
             );
         }
     }
+
+    /**
+     * Вложенный класс для тестирования POST /v1/audio/speech.
+     */
+    @Nested
+    @DisplayName("POST /v1/audio/speech - Интеграционные тесты TTS")
+    class PostAudioSpeechIntegrationTests {
+
+        /**
+         * Общий метод для выполнения POST-запроса и проверки статуса ответа.
+         *
+         * @param model  Название модели (`tts-1` или `tts-1-hd`).
+         * @param voice  Голос для генерации аудио.
+         * @param input  Текст для преобразования в аудио.
+         * @param format Формат выходного аудио.
+         */
+        private void performGenerateSpeechTest(String model, String voice, String input, String format) {
+            String url = getBaseUrl() + "/audio/speech";
+
+            // Подготовка запроса
+            AudioSpeechRequestDTO requestDTO = new AudioSpeechRequestDTO(
+                    model,
+                    voice,
+                    input,
+                    format
+            );
+
+            // Установка заголовков
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(proxyApiKey);
+            HttpEntity<AudioSpeechRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
+
+            // Выполнение POST-запроса
+            ResponseEntity<byte[]> response = restTemplate.postForEntity(
+                    url,
+                    requestEntity,
+                    byte[].class
+            );
+
+            // Проверка статуса ответа
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // Проверка наличия тела ответа
+            byte[] audioData = response.getBody();
+            assertThat(audioData).isNotNull();
+            assertThat(audioData.length).isGreaterThan(0);
+
+            // Проверка заголовков ответа
+            HttpHeaders responseHeaders = response.getHeaders();
+            assertThat(responseHeaders.getContentType()).isNotNull();
+            assertThat(responseHeaders.getContentType().toString()).isEqualTo(getMediaTypeForFormat(format).toString());
+            assertThat(responseHeaders.getContentDisposition()).isNotNull();
+            assertThat(responseHeaders.getContentDisposition().getFilename()).isEqualTo("speech." + format.toLowerCase());
+        }
+
+        /**
+         * Вспомогательный метод для определения типа контента по формату.
+         *
+         * @param format Формат аудио файла.
+         * @return Соответствующий MediaType.
+         */
+        private MediaType getMediaTypeForFormat(String format) {
+            return switch (format.toLowerCase()) {
+                case "mp3" -> MediaType.parseMediaType("audio/mpeg");
+                case "opus" -> MediaType.parseMediaType("audio/opus");
+                case "aac" -> MediaType.parseMediaType("audio/aac");
+                case "flac" -> MediaType.parseMediaType("audio/flac");
+                default -> MediaType.APPLICATION_OCTET_STREAM;
+            };
+        }
+
+        @Test
+        @DisplayName("POST /v1/audio/speech - Успешная генерация аудио с моделью tts-1")
+        void testGenerateSpeechWithTts1() {
+            performGenerateSpeechTest(
+                    "tts-1",
+                    "alloy",
+                    "Today is a wonderful day to build something people love!",
+                    "mp3"
+            );
+        }
+    }
 }
