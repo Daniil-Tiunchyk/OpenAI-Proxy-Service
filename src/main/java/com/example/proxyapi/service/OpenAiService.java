@@ -2,15 +2,17 @@ package com.example.proxyapi.service;
 
 import com.example.proxyapi.dto.openai.*;
 import com.example.proxyapi.exception.ProxyApiException;
+import com.example.proxyapi.utils.FilePart;
 import com.example.proxyapi.utils.ProxyApiHttpClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Сервис для взаимодействия с OpenAI через ProxyAPI.
@@ -134,6 +136,90 @@ public class OpenAiService {
         } catch (IOException | InterruptedException e) {
             log.error("Ошибка при генерации аудио (OpenAI): {}", e.getMessage(), e);
             throw new ProxyApiException("Ошибка при генерации аудио (OpenAI)", e);
+        }
+    }
+
+    /**
+     * Транскрибировать аудио файл.
+     *
+     * @param file       Аудио файл
+     * @param requestDTO Параметры запроса
+     * @return Ответ от OpenAI как AudioResponseDTO
+     */
+    public AudioResponseDTO transcribeAudio(MultipartFile file, AudioTranscriptionRequestDTO requestDTO) {
+        String url = BASE_URL + "/v1/audio/transcriptions";
+        try {
+            Map<String, String> fields = new HashMap<>();
+            fields.put("model", requestDTO.getModel());
+
+            if (requestDTO.getResponse_format() != null && !requestDTO.getResponse_format().isEmpty()) {
+                fields.put("response_format", requestDTO.getResponse_format());
+            }
+
+            if (requestDTO.getPrompt() != null && !requestDTO.getPrompt().isEmpty()) {
+                fields.put("prompt", requestDTO.getPrompt());
+            }
+
+            // Создание списка файлов с указанием Content-Type
+            List<FilePart> fileParts = new ArrayList<>();
+            file.getContentType();
+            fileParts.add(new FilePart(
+                    "file",
+                    file.getOriginalFilename(),
+                    file.getBytes(),
+                    file.getContentType()
+            ));
+
+            String jsonResponse = ProxyApiHttpClient.sendMultipartPost(url, fields, fileParts, proxyApiKey);
+            log.debug("Received transcription response: {}", jsonResponse);
+
+            return objectMapper.readValue(jsonResponse, AudioResponseDTO.class);
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Ошибка при транскрипции аудио (OpenAI): {}", e.getMessage(), e);
+            throw new ProxyApiException("Ошибка при транскрипции аудио (OpenAI)", e);
+        }
+    }
+
+    /**
+     * Перевести аудио файл на английский.
+     *
+     * @param file       Аудио файл
+     * @param requestDTO Параметры перевода
+     * @return Ответ от OpenAI как AudioResponseDTO
+     */
+    public AudioResponseDTO translateAudio(MultipartFile file, AudioTranslationRequestDTO requestDTO) {
+        String url = BASE_URL + "/v1/audio/translations";
+        try {
+            Map<String, String> fields = new HashMap<>();
+            fields.put("model", requestDTO.getModel());
+
+            if (requestDTO.getResponse_format() != null && !requestDTO.getResponse_format().isEmpty()) {
+                fields.put("response_format", requestDTO.getResponse_format());
+            }
+
+            if (requestDTO.getPrompt() != null && !requestDTO.getPrompt().isEmpty()) {
+                fields.put("prompt", requestDTO.getPrompt());
+            }
+
+            // Создание списка файлов с указанием Content-Type
+            List<FilePart> fileParts = new ArrayList<>();
+            file.getContentType();
+            fileParts.add(new FilePart(
+                    "file",
+                    file.getOriginalFilename(),
+                    file.getBytes(),
+                    file.getContentType()
+            ));
+
+            String jsonResponse = ProxyApiHttpClient.sendMultipartPost(url, fields, fileParts, proxyApiKey);
+            log.debug("Received translation response: {}", jsonResponse);
+
+            return objectMapper.readValue(jsonResponse, AudioResponseDTO.class);
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Ошибка при переводе аудио (OpenAI): {}", e.getMessage(), e);
+            throw new ProxyApiException("Ошибка при переводе аудио (OpenAI)", e);
         }
     }
 }

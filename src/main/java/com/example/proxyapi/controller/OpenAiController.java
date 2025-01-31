@@ -3,15 +3,21 @@ package com.example.proxyapi.controller;
 import com.example.proxyapi.dto.openai.*;
 import com.example.proxyapi.service.OpenAiService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Контроллер для работы с OpenAI (через ProxyAPI).
@@ -20,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
  * 1. GET /v1/models
  * 2. POST /v1/chat/completions
  * 3. POST /v1/images/generations
+ * 4. POST /v1/audio/speech
+ * 5. POST /v1/audio/transcriptions
+ * 6. POST /v1/audio/translations
  */
 @Tag(name = "OpenAI (ProxyAPI)", description = "Эндпоинты для взаимодействия с OpenAI через ProxyAPI")
 @RestController
@@ -137,5 +146,99 @@ public class OpenAiController {
             case "flac" -> MediaType.parseMediaType("audio/flac");
             default -> MediaType.APPLICATION_OCTET_STREAM;
         };
+    }
+
+    /**
+     * Транскрибировать аудио файл.
+     *
+     * @param file           Аудио файл
+     * @param model          Название модели
+     * @param responseFormat Формат ответа
+     * @param prompt         Дополнительный prompt
+     * @return Транскрибированный текст
+     */
+    @Operation(
+            summary = "Транскрипция аудио",
+            description = "Транскрибирует предоставленный аудио файл на основе модели Whisper.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешная транскрипция",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AudioResponseDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Некорректный запрос"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            }
+    )
+    @PostMapping(value = "/audio/transcriptions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AudioResponseDTO> transcribeAudio(
+            @Parameter(description = "Аудио файл для транскрипции", required = true)
+            @RequestPart("file") MultipartFile file,
+
+            @Parameter(description = "Название модели", required = true)
+            @RequestPart("model") @Valid @Pattern(regexp = "whisper-1", message = "Model must be 'whisper-1'") String model,
+
+            @Parameter(description = "Формат ответа")
+            @RequestPart(value = "response_format", required = false) String responseFormat,
+
+            @Parameter(description = "Дополнительный prompt")
+            @RequestPart(value = "prompt", required = false) String prompt
+    ) {
+        log.info("POST /openai/v1/audio/transcriptions - загружается файл: {}", file.getOriginalFilename());
+
+        AudioTranscriptionRequestDTO requestDTO = new AudioTranscriptionRequestDTO();
+        requestDTO.setModel(model);
+        requestDTO.setResponse_format(responseFormat);
+        requestDTO.setPrompt(prompt);
+
+        AudioResponseDTO response = openAiService.transcribeAudio(file, requestDTO);
+        log.info("POST /openai/v1/audio/transcriptions - транскрипция завершена.");
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Перевести аудио файл на английский.
+     *
+     * @param file           Аудио файл
+     * @param model          Название модели
+     * @param responseFormat Формат ответа
+     * @param prompt         Дополнительный prompt
+     * @return Переведённый текст
+     */
+    @Operation(
+            summary = "Перевод аудио",
+            description = "Переводит предоставленный аудио файл на английский язык с использованием модели Whisper.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешный перевод",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = AudioResponseDTO.class))),
+                    @ApiResponse(responseCode = "400", description = "Некорректный запрос"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            }
+    )
+    @PostMapping(value = "/audio/translations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AudioResponseDTO> translateAudio(
+            @Parameter(description = "Аудио файл для перевода", required = true)
+            @RequestPart("file") MultipartFile file,
+
+            @Parameter(description = "Название модели", required = true)
+            @RequestPart("model") @Valid @Pattern(regexp = "whisper-1", message = "Model must be 'whisper-1'") String model,
+
+            @Parameter(description = "Формат ответа")
+            @RequestPart(value = "response_format", required = false) String responseFormat,
+
+            @Parameter(description = "Дополнительный prompt")
+            @RequestPart(value = "prompt", required = false) String prompt
+    ) {
+        log.info("POST /openai/v1/audio/translations - загружается файл: {}", file.getOriginalFilename());
+
+        AudioTranslationRequestDTO requestDTO = new AudioTranslationRequestDTO();
+        requestDTO.setModel(model);
+        requestDTO.setResponse_format(responseFormat);
+        requestDTO.setPrompt(prompt);
+
+        AudioResponseDTO response = openAiService.translateAudio(file, requestDTO);
+        log.info("POST /openai/v1/audio/translations - перевод завершён.");
+
+        return ResponseEntity.ok(response);
     }
 }
