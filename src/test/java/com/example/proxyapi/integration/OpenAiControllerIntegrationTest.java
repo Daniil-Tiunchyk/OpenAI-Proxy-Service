@@ -11,7 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -333,6 +336,96 @@ class OpenAiControllerIntegrationTest {
                     "Today is a wonderful day to build something people love!",
                     "mp3"
             );
+        }
+    }
+
+    /**
+     * Вложенный класс для тестирования POST /v1/audio/transcriptions и /v1/audio/translations.
+     */
+    @Nested
+    @DisplayName("POST /v1/audio/transcriptions и /v1/audio/translations - Интеграционные тесты")
+    class AudioTranscriptionAndTranslationIntegrationTests {
+
+        /**
+         * Тестирование транскрипции аудио файла.
+         */
+        @Test
+        @DisplayName("POST /v1/audio/transcriptions - Успешная транскрипция аудио")
+        void testTranscribeAudio() {
+            String url = getBaseUrl() + "/audio/transcriptions";
+
+            // Чтение файла из ресурсов
+            ClassPathResource audioResource = new ClassPathResource("speech.mp3");
+            assertThat(audioResource.exists()).isTrue();
+
+            // Подготовка параметров транскрипции
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", audioResource);
+            body.add("model", "whisper-1");
+            body.add("response_format", "json");
+            body.add("prompt", "Используй правильную пунктуацию и заглавные буквы.");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(proxyApiKey);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // Выполнение POST-запроса
+            ResponseEntity<AudioResponseDTO> response = restTemplate.postForEntity(
+                    url,
+                    requestEntity,
+                    AudioResponseDTO.class
+            );
+
+            // Проверка статуса ответа
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // Проверка тела ответа
+            AudioResponseDTO responseBody = response.getBody();
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getText()).isNotEmpty();
+        }
+
+        /**
+         * Тестирование перевода аудио файла.
+         */
+        @Test
+        @DisplayName("POST /v1/audio/translations - Успешный перевод аудио")
+        void testTranslateAudio() {
+            String url = getBaseUrl() + "/audio/translations";
+
+            // Чтение файла из ресурсов
+            ClassPathResource audioResource = new ClassPathResource("speech.mp3");
+            assertThat(audioResource.exists()).isTrue();
+
+            // Подготовка параметров перевода
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", audioResource);
+            body.add("model", "whisper-1");
+            body.add("response_format", "json");
+            body.add("prompt", "Используй правильную пунктуацию и заглавные буквы.");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(proxyApiKey);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            // Выполнение POST-запроса
+            ResponseEntity<AudioResponseDTO> response = restTemplate.postForEntity(
+                    url,
+                    requestEntity,
+                    AudioResponseDTO.class
+            );
+
+            // Проверка статуса ответа
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // Проверка тела ответа
+            AudioResponseDTO responseBody = response.getBody();
+            assertThat(responseBody).isNotNull();
+            assertThat(responseBody.getText()).isNotEmpty();
         }
     }
 }
