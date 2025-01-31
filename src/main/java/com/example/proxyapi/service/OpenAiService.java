@@ -111,4 +111,29 @@ public class OpenAiService {
             throw new ProxyApiException("Ошибка при генерации изображения (OpenAI)", e);
         }
     }
+
+    /**
+     * Сгенерировать аудио на основе текста.
+     *
+     * @param requestDTO Запрос с параметрами генерации аудио
+     * @return Бинарные данные аудио файла
+     */
+    public byte[] generateSpeech(AudioSpeechRequestDTO requestDTO) {
+        String url = BASE_URL + "/v1/audio/speech";
+        try {
+            // Сериализация запроса в JSON
+            String jsonRequest = objectMapper.writeValueAsString(requestDTO);
+            log.debug("Sending POST request to {} with body: {}", url, jsonRequest);
+
+            // Отправка POST-запроса и получение бинарного ответа
+            byte[] audioData = ProxyApiHttpClient.sendPostForBytes(url, jsonRequest, proxyApiKey);
+            log.debug("Received audio data of length: {}", audioData.length);
+
+            return audioData;
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Ошибка при генерации аудио (OpenAI): {}", e.getMessage(), e);
+            throw new ProxyApiException("Ошибка при генерации аудио (OpenAI)", e);
+        }
+    }
 }

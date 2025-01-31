@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -88,5 +90,52 @@ public class OpenAiController {
         ImageGenerationResponseDTO response = openAiService.generateImage(requestDTO);
         log.info("POST /openai/v1/images/generations - ответ: {}", response);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Генерация аудио на основе текста.
+     *
+     * @param requestDTO Запрос с параметрами генерации аудио
+     * @return Аудио файл в указанном формате
+     */
+    @Operation(
+            summary = "Генерация аудио из текста",
+            description = "Преобразует текст в аудио файл с использованием моделей tts-1 или tts-1-hd."
+    )
+    @PostMapping("/audio/speech")
+    public ResponseEntity<byte[]> generateSpeech(
+            @Valid @RequestBody AudioSpeechRequestDTO requestDTO
+    ) {
+        log.info("POST /openai/v1/audio/speech - входящие данные: {}", requestDTO);
+        byte[] audioData = openAiService.generateSpeech(requestDTO);
+        log.info("POST /openai/v1/audio/speech - аудио сгенерировано, размер: {} байт", audioData.length);
+
+        // Определение типа контента на основе формата
+        MediaType mediaType = getMediaTypeForFormat(requestDTO.getFormat());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(mediaType);
+        headers.setContentLength(audioData.length);
+        headers.setContentDispositionFormData("attachment", "speech." + requestDTO.getFormat());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(audioData);
+    }
+
+    /**
+     * Вспомогательный метод для определения типа контента по формату.
+     *
+     * @param format Формат аудио файла
+     * @return Соответствующий MediaType
+     */
+    private MediaType getMediaTypeForFormat(String format) {
+        return switch (format.toLowerCase()) {
+            case "mp3" -> MediaType.parseMediaType("audio/mpeg");
+            case "opus" -> MediaType.parseMediaType("audio/opus");
+            case "aac" -> MediaType.parseMediaType("audio/aac");
+            case "flac" -> MediaType.parseMediaType("audio/flac");
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
     }
 }
