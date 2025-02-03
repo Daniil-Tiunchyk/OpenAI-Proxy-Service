@@ -89,6 +89,33 @@ public class OpenAiService {
     }
 
     /**
+     * Получить Embeddings для переданного текста.
+     *
+     * @param requestDTO объект, содержащий model и input
+     * @return EmbeddingsResponseDTO с векторным представлением текста
+     */
+    public EmbeddingsResponseDTO createEmbeddings(EmbeddingsRequestDTO requestDTO) {
+        String url = BASE_URL + "/v1/embeddings";
+
+        try {
+            // Сериализация тела запроса в JSON
+            String jsonRequest = objectMapper.writeValueAsString(requestDTO);
+            log.debug("Sending POST request to {} with body: {}", url, jsonRequest);
+
+            // Выполняем POST-запрос
+            String jsonResponse = ProxyApiHttpClient.sendPost(url, jsonRequest, proxyApiKey);
+            log.debug("Received embeddings response: {}", jsonResponse);
+
+            // Десериализуем ответ
+            return objectMapper.readValue(jsonResponse, EmbeddingsResponseDTO.class);
+
+        } catch (IOException | InterruptedException e) {
+            log.error("Ошибка при получении embeddings (OpenAI): {}", e.getMessage(), e);
+            throw new ProxyApiException("Ошибка при получении embeddings (OpenAI)", e);
+        }
+    }
+
+    /**
      * Сгенерировать изображение на основе текста.
      *
      * @param requestDTO Запрос с параметрами генерации

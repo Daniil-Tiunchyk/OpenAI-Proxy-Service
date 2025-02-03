@@ -82,6 +82,33 @@ public class OpenAiController {
     }
 
     /**
+     * Получить Embeddings для переданного текста.
+     *
+     * @param requestDTO объект с параметрами model и input
+     * @return EmbeddingsResponseDTO с векторным представлением текста
+     */
+    @Operation(
+            summary = "Получить Embeddings",
+            description = """
+                    Отправляет запрос на /v1/embeddings в OpenAI (через ProxyAPI),
+                    чтобы получить векторное представление (embedding) для переданного текста.
+                    Модель можно выбрать из: text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002.
+                    """
+    )
+    @ApiResponse(responseCode = "200", description = "Успешное получение Embeddings")
+    @ApiResponse(responseCode = "400", description = "Некорректный запрос")
+    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    @PostMapping("/embeddings")
+    public ResponseEntity<EmbeddingsResponseDTO> createEmbeddings(
+            @Valid @RequestBody EmbeddingsRequestDTO requestDTO
+    ) {
+        log.info("POST /openai/v1/embeddings - входящие данные: {}", requestDTO);
+        EmbeddingsResponseDTO response = openAiService.createEmbeddings(requestDTO);
+        log.info("POST /openai/v1/embeddings - ответ: {}", response);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Генерация изображений на основе текстового prompt.
      *
      * @param requestDTO Запрос с параметрами генерации
