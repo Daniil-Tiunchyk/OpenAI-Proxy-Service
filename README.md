@@ -22,12 +22,11 @@
     - [POST /v1/audio/speech](#post-v1audiospeech)
     - [POST /v1/audio/transcriptions](#post-v1audiotranscriptions)
     - [POST /v1/audio/translations](#post-v1audiotranslations)
+    - [POST /v1/embeddings](#post-v1embeddings)
   - [Логирование](#логирование)
   - [Роадмап](#роадмап)
     - [Доступные методы](#доступные-методы)
       - [OpenAI](#openai)
-      - [Google](#google)
-      - [Anthropic](#anthropic)
   - [Вклад](#вклад)
   - [Лицензия](#лицензия)
   - [Контакты](#контакты)
@@ -45,6 +44,7 @@
 - **Документация Swagger:** Интерактивная документация API, сгенерированная с помощью Swagger, для удобного изучения и тестирования эндпоинтов.
 - **Текст в речь (TTS):** Поддержка моделей `tts-1` и `tts-1-hd` для преобразования текста в аудио, с возможностью выбора голоса и формата вывода.
 - **Транскрипция и Перевод Аудио:** Возможность транскрибировать аудио файлы и переводить с использованием модели Whisper.
+- **Embeddings:** Поддержка моделей для получения векторных представлений текста (например, `text-embedding-3-small`, `text-embedding-3-large`, `text-embedding-ada-002`).
 
 ### Особенности моделей o1 и o1-mini
 
@@ -107,6 +107,8 @@
                                     └── ImageGenerationResponseDTO.java
                                     └── MessageDTO.java
                                     └── UsageDTO.java
+                                    └── EmbeddingsRequestDTO.java
+                                    └── EmbeddingsResponseDTO.java
                             └── 📁exception
                                 └── ProxyApiException.java
                             └── ProxyApiApplication.java
@@ -341,6 +343,7 @@ Authorization: Bearer YOUR_PROXY_API_KEY
 ```bash
 curl -X POST "http://localhost:8080/openai/v1/audio/speech" \
      -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_PROXY_API_KEY" \
      -d '{
            "model": "tts-1",
            "voice": "alloy",
@@ -455,9 +458,67 @@ Content-Disposition: form-data; name="prompt"
 
 **Примечания:**
 
+
 - **`model`:** Выбор модели для транскрипции и перевода.
 - **`response_format`:** Выберите формат ответа, подходящий для вашего применения.
 - **`prompt`:** Используйте для уточнения и улучшения качества транскрипции или перевода.
+
+### POST /v1/embeddings
+
+Получение векторного представления текста (embedding) с помощью одной из моделей:  
+
+- `text-embedding-3-small`  
+- `text-embedding-3-large`  
+- `text-embedding-ada-002`  
+
+**Запрос:**
+
+```http
+POST /openai/v1/embeddings HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+Authorization: Bearer YOUR_PROXY_API_KEY
+
+{
+  "model": "text-embedding-3-small",
+  "input": "Пример текста для получения эмбеддинга"
+}
+```
+
+**Параметры запроса:**
+
+- **`model`:** Название модели, например, `text-embedding-3-small`, `text-embedding-3-large` или `text-embedding-ada-002`.
+- **`input`:** Текст, для которого нужно получить векторное представление (embedding).
+
+**Ответ:**
+
+```json
+{
+  "object": "list",
+  "model": "text-embedding-3-small",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0,
+      "embedding": [
+        -0.006929283495992422,
+        -0.005336422007530928,
+        ...
+        -0.024047505110502243
+      ]
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5,
+    "total_tokens": 5
+  }
+}
+```
+
+**Примечания:**
+
+- **Векторное представление (embedding):** массив чисел с плавающей точкой, отражающих семантическую близость слов. Чем меньше косинусное расстояние между embedding-ами двух текстов, тем они более «похожи» по смыслу.
+- **Ограничения:** Максимальный размер входа (в токенах) варьируется в зависимости от модели. Убедитесь, что вы не превышаете лимитов, накладываемых OpenAI/ProxyAPI.
 
 ## Логирование
 
@@ -474,26 +535,13 @@ Content-Disposition: form-data; name="prompt"
 - [x] `/v1/images/generations`
 - [ ] `/v1/images/edits`
 - [ ] `/v1/images/variations`
-- [ ] `/v1/embeddings`
+- [x] `/v1/embeddings`
 - [ ] `/v1/files` (доступно в подписке ProxyAPI Pro)
 - [ ] `/v1/assistants` (доступно в подписке ProxyAPI Pro)
 - [ ] `/v1/threads/*` (доступно в подписке ProxyAPI Pro)
 - [x] `/v1/audio/speech`
 - [x] `/v1/audio/transcriptions`
 - [x] `/v1/audio/translations`
-
-#### Google
-
-- [ ] `/v1/models/{model}:generateContent`
-- [ ] `/v1/models/{model}:streamGenerateContent`
-- [ ] `/v1beta/models/{model}:generateContent`
-- [ ] `/v1beta/models/{model}:streamGenerateContent`
-- [ ] `/v1/models/{model}:countTokens`
-- [ ] `/v1beta/models/{model}:countTokens`
-
-#### Anthropic
-
-- [ ] `/v1/messages`
 
 ## Вклад
 
