@@ -182,6 +182,88 @@ class OpenAiControllerIntegrationTest {
     }
 
     /**
+     * Вложенный класс для тестирования POST /v1/embeddings.
+     */
+    @Nested
+    @DisplayName("POST /v1/embeddings - Интеграционные тесты Embeddings")
+    class PostEmbeddingsIntegrationTests {
+
+        /**
+         * Общий метод для отправки запроса на /v1/embeddings и проверки корректности ответа.
+         *
+         * @param model модель для получения Embeddings (например, text-embedding-3-small)
+         * @param input текст для которого запрашиваем векторное представление (embedding)
+         */
+        private void performEmbeddingsTest(String model, String input) {
+            String url = getBaseUrl() + "/embeddings";
+
+            // Готовим DTO запроса
+            EmbeddingsRequestDTO requestDTO = new EmbeddingsRequestDTO();
+            requestDTO.setModel(model);
+            requestDTO.setInput(input);
+
+            // Установка заголовков
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(proxyApiKey);
+
+            HttpEntity<EmbeddingsRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
+
+            // Выполняем POST-запрос
+            ResponseEntity<EmbeddingsResponseDTO> response = restTemplate.postForEntity(
+                    url,
+                    requestEntity,
+                    EmbeddingsResponseDTO.class
+            );
+
+            // Проверка статуса ответа
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            // Проверяем, что тело ответа не null
+            EmbeddingsResponseDTO responseBody = response.getBody();
+            assertThat(responseBody).isNotNull();
+
+            // Проверяем, что модель в ответе совпадает с той, что запрашивали
+            assertThat(responseBody.getModel()).isEqualTo(model);
+
+            // Проверяем, что есть хотя бы один объект в "data"
+            assertThat(responseBody.getData()).isNotEmpty();
+
+            // У первого элемента проверяем, что embedding не пустой
+            EmbeddingsResponseDTO.EmbeddingData embeddingData = responseBody.getData().get(0);
+            assertThat(embeddingData.getEmbedding()).isNotEmpty();
+
+            // Доп. проверки: например, "object" должно быть "list", usage не нулевой и т.д.
+            assertThat(responseBody.getObject()).isEqualTo("list");
+            assertThat(responseBody.getUsage()).isNotNull();
+            // Например, проверяем, что usage.promptTokens > 0
+            assertThat(responseBody.getUsage().getPromptTokens()).isGreaterThan(0);
+            // И что totalTokens >= promptTokens
+            assertThat(responseBody.getUsage().getTotalTokens()).isGreaterThanOrEqualTo(
+                    responseBody.getUsage().getPromptTokens()
+            );
+        }
+
+        @Test
+        @DisplayName("POST /v1/embeddings - Модель text-embedding-3-small")
+        void testCreateEmbeddingsWith3Small() {
+            performEmbeddingsTest(
+                    "text-embedding-3-small",
+                    "Пример текста для модели text-embedding-3-small"
+            );
+        }
+
+        @Test
+        @DisplayName("POST /v1/embeddings - Модель text-embedding-3-large")
+        void testCreateEmbeddingsWith3Large() {
+            performEmbeddingsTest(
+                    "text-embedding-3-large",
+                    "Пример текста для модели text-embedding-3-large"
+            );
+        }
+    }
+
+    /**
      * Вложенный класс для тестирования POST /v1/images/generations.
      */
     @Nested
