@@ -94,21 +94,18 @@
                             └── 📁dto
                                 └── ErrorResponse.java
                                 └── 📁openai
+                                    └── AudioRequestDTO.java
                                     └── AudioResponseDTO.java
                                     └── AudioSpeechRequestDTO.java
-                                    └── AudioTranslationRequestDTO.java
-                                    └── AudioTranscriptionRequestDTO.java
                                     └── ChatCompletionRequestDTO.java
                                     └── ChatCompletionRequestInputDTO.java
                                     └── ChatCompletionResponseDTO.java
-                                    └── ChoiceDTO.java
+                                    └── EmbeddingsRequestDTO.java
+                                    └── EmbeddingsResponseDTO.java
                                     └── ImageDataDTO.java
                                     └── ImageGenerationRequestDTO.java
                                     └── ImageGenerationResponseDTO.java
                                     └── MessageDTO.java
-                                    └── UsageDTO.java
-                                    └── EmbeddingsRequestDTO.java
-                                    └── EmbeddingsResponseDTO.java
                             └── 📁exception
                                 └── ProxyApiException.java
                             └── ProxyApiApplication.java

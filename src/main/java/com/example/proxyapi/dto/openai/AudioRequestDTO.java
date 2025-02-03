@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class AudioTranslationRequestDTO {
+public class AudioRequestDTO {
 
     /**
      * Название модели, например, "whisper-1".
@@ -25,6 +25,6 @@ public class AudioTranslationRequestDTO {
     /**
      * Дополнительный prompt для улучшения качества перевода.
      */
-    @Schema(description = "Дополнительный prompt для улучшения качества перевода.", example = "Используй правильную пунктуацию и заглавные буквы.")
+    @Schema(description = "Дополнительный prompt для улучшения качества ответа.", example = "Используй правильную пунктуацию и заглавные буквы.")
     private String prompt;
 }

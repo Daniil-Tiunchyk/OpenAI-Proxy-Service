@@ -211,7 +211,7 @@ public class OpenAiController {
     ) {
         log.info("POST /openai/v1/audio/transcriptions - загружается файл: {}", file.getOriginalFilename());
 
-        AudioTranscriptionRequestDTO requestDTO = new AudioTranscriptionRequestDTO();
+        AudioRequestDTO requestDTO = new AudioRequestDTO();
         requestDTO.setModel(model);
         requestDTO.setResponse_format(responseFormat);
         requestDTO.setPrompt(prompt);
@@ -258,7 +258,7 @@ public class OpenAiController {
     ) {
         log.info("POST /openai/v1/audio/translations - загружается файл: {}", file.getOriginalFilename());
 
-        AudioTranslationRequestDTO requestDTO = new AudioTranslationRequestDTO();
+        AudioRequestDTO requestDTO = new AudioRequestDTO();
         requestDTO.setModel(model);
         requestDTO.setResponse_format(responseFormat);
         requestDTO.setPrompt(prompt);

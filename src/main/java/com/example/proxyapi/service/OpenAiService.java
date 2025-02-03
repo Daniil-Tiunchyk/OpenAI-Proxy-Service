@@ -173,7 +173,7 @@ public class OpenAiService {
      * @param requestDTO Параметры запроса
      * @return Ответ от OpenAI как AudioResponseDTO
      */
-    public AudioResponseDTO transcribeAudio(MultipartFile file, AudioTranscriptionRequestDTO requestDTO) {
+    public AudioResponseDTO transcribeAudio(MultipartFile file, AudioRequestDTO requestDTO) {
         String url = BASE_URL + "/v1/audio/transcriptions";
         try {
             Map<String, String> fields = new HashMap<>();
@@ -215,7 +215,7 @@ public class OpenAiService {
      * @param requestDTO Параметры перевода
      * @return Ответ от OpenAI как AudioResponseDTO
      */
-    public AudioResponseDTO translateAudio(MultipartFile file, AudioTranslationRequestDTO requestDTO) {
+    public AudioResponseDTO translateAudio(MultipartFile file, AudioRequestDTO requestDTO) {
         String url = BASE_URL + "/v1/audio/translations";
         try {
             Map<String, String> fields = new HashMap<>();

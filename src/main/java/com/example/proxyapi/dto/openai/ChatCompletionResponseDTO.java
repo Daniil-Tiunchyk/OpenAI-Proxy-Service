@@ -33,4 +33,47 @@ public class ChatCompletionResponseDTO {
 
     @Schema(description = "Информация о количестве использованных токенов", example = "{\"completion_tokens\":17,\"prompt_tokens\":57,\"total_tokens\":74}")
     private UsageDTO usage;
+
+    /**
+     * DTO для элемента массива "choices" в Chat Completion Response.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ChoiceDTO {
+
+        @Schema(description = "Причина завершения ответа", example = "stop")
+        private String finish_reason;
+
+        @Schema(description = "Индекс выбора", example = "0")
+        private int index;
+
+        @Schema(description = "Сообщение ассистента", example = "{\"content\": \"This is a test!\", \"role\": \"assistant\"}")
+        private MessageDTO message;
+
+        @Schema(description = "Логарифмические вероятности токенов", example = "null")
+        private Object logprobs;
+    }
+
+    /**
+     * DTO для поля "usage" в Chat Completion Response.
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class UsageDTO {
+
+        @Schema(description = "Количество токенов, использованных для промпта", example = "57")
+        private int prompt_tokens;
+
+        @Schema(description = "Количество токенов, использованных для завершения", example = "17")
+        private int completion_tokens;
+
+        @Schema(description = "Общее количество использованных токенов", example = "74")
+        private int total_tokens;
+    }
 }
