@@ -21,14 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Контроллер для работы с OpenAI (через ProxyAPI).
- * <p>
- * Имеет эндпоинты:
- * 1. GET /v1/models
- * 2. POST /v1/chat/completions
- * 3. POST /v1/images/generations
- * 4. POST /v1/audio/speech
- * 5. POST /v1/audio/transcriptions
- * 6. POST /v1/audio/translations
  */
 @Tag(name = "OpenAI (ProxyAPI)", description = "Эндпоинты для взаимодействия с OpenAI через ProxyAPI")
 @RestController

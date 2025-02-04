@@ -38,8 +38,8 @@ class OpenAiControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${proxyapi.key}")
-    private String proxyApiKey;
+    @Value("${api.key}")
+    private String apiKey;
 
     // Набор моделей, для которых используется temperature=1 и maxCompletionTokens
     private static final Set<String> MODELS_WITH_DEFAULT_TEMPERATURE = Set.of("o1", "o1-mini");
@@ -60,7 +60,7 @@ class OpenAiControllerIntegrationTest {
         String url = getBaseUrl() + "/models";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(proxyApiKey);
+        headers.setBearerAuth(apiKey);
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
@@ -120,7 +120,7 @@ class OpenAiControllerIntegrationTest {
             // Установка заголовков
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
             HttpEntity<ChatCompletionRequestInputDTO> requestEntity = new HttpEntity<>(requestInputDTO, headers);
 
             // Выполнение POST-запроса
@@ -205,7 +205,7 @@ class OpenAiControllerIntegrationTest {
             // Установка заголовков
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
 
             HttpEntity<EmbeddingsRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
@@ -294,7 +294,7 @@ class OpenAiControllerIntegrationTest {
             // Установка заголовков
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
             HttpEntity<ImageGenerationRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
             // Выполнение POST-запроса
@@ -367,7 +367,7 @@ class OpenAiControllerIntegrationTest {
             // Установка заголовков
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
             HttpEntity<AudioSpeechRequestDTO> requestEntity = new HttpEntity<>(requestDTO, headers);
 
             // Выполнение POST-запроса
@@ -449,7 +449,7 @@ class OpenAiControllerIntegrationTest {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
@@ -490,7 +490,7 @@ class OpenAiControllerIntegrationTest {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-            headers.setBearerAuth(proxyApiKey);
+            headers.setBearerAuth(apiKey);
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 

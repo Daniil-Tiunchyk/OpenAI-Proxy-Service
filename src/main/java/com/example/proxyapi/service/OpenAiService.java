@@ -22,10 +22,11 @@ public class OpenAiService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiService.class);
 
-    @Value("${proxyapi.key}")
+    @Value("${api.key}")
     private String proxyApiKey;
 
-    private static final String BASE_URL = "https://api.proxyapi.ru/openai";
+    @Value("${api.base-url}")
+    private String baseUrl;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Набор моделей, для которых используется max_completion_tokens и temperature=1
@@ -37,7 +38,7 @@ public class OpenAiService {
      * @return JSON-строка со списком моделей
      */
     public String listModels() {
-        String url = BASE_URL + "/v1/models";
+        String url = baseUrl + "/v1/models";
         try {
             return ProxyApiHttpClient.sendGet(url, proxyApiKey);
         } catch (IOException | InterruptedException e) {
@@ -52,7 +53,7 @@ public class OpenAiService {
      * @return Ответ от OpenAI как ChatCompletionResponseDTO
      */
     public ChatCompletionResponseDTO createChatCompletion(ChatCompletionRequestInputDTO requestInputDTO) {
-        String url = BASE_URL + "/v1/chat/completions";
+        String url = baseUrl + "/v1/chat/completions";
         try {
             // Маппинг входящего DTO на внутренний DTO
             ChatCompletionRequestDTO requestDTO = new ChatCompletionRequestDTO();
@@ -95,7 +96,7 @@ public class OpenAiService {
      * @return EmbeddingsResponseDTO с векторным представлением текста
      */
     public EmbeddingsResponseDTO createEmbeddings(EmbeddingsRequestDTO requestDTO) {
-        String url = BASE_URL + "/v1/embeddings";
+        String url = baseUrl + "/v1/embeddings";
 
         try {
             // Сериализация тела запроса в JSON
@@ -122,7 +123,7 @@ public class OpenAiService {
      * @return Ответ от OpenAI как ImageGenerationResponseDTO
      */
     public ImageGenerationResponseDTO generateImage(ImageGenerationRequestDTO requestDTO) {
-        String url = BASE_URL + "/v1/images/generations";
+        String url = baseUrl + "/v1/images/generations";
         try {
             // Сериализация запроса в JSON
             String jsonRequest = objectMapper.writeValueAsString(requestDTO);
@@ -148,7 +149,7 @@ public class OpenAiService {
      * @return Бинарные данные аудио файла
      */
     public byte[] generateSpeech(AudioSpeechRequestDTO requestDTO) {
-        String url = BASE_URL + "/v1/audio/speech";
+        String url = baseUrl + "/v1/audio/speech";
         try {
             // Сериализация запроса в JSON
             String jsonRequest = objectMapper.writeValueAsString(requestDTO);
@@ -174,7 +175,7 @@ public class OpenAiService {
      * @return Ответ от OpenAI как AudioResponseDTO
      */
     public AudioResponseDTO transcribeAudio(MultipartFile file, AudioRequestDTO requestDTO) {
-        String url = BASE_URL + "/v1/audio/transcriptions";
+        String url = baseUrl + "/v1/audio/transcriptions";
         try {
             Map<String, String> fields = new HashMap<>();
             fields.put("model", requestDTO.getModel());
@@ -216,7 +217,7 @@ public class OpenAiService {
      * @return Ответ от OpenAI как AudioResponseDTO
      */
     public AudioResponseDTO translateAudio(MultipartFile file, AudioRequestDTO requestDTO) {
-        String url = BASE_URL + "/v1/audio/translations";
+        String url = baseUrl + "/v1/audio/translations";
         try {
             Map<String, String> fields = new HashMap<>();
             fields.put("model", requestDTO.getModel());
