@@ -169,55 +169,44 @@ public class OpenAiService {
 
     /**
      * Транскрибировать аудио файл.
-     *
-     * @param file       Аудио файл
-     * @param requestDTO Параметры запроса
-     * @return Ответ от OpenAI как AudioResponseDTO
      */
     public AudioResponseDTO transcribeAudio(MultipartFile file, AudioRequestDTO requestDTO) {
-        String url = baseUrl + "/v1/audio/transcriptions";
-        try {
-            Map<String, String> fields = new HashMap<>();
-            fields.put("model", requestDTO.getModel());
-
-            if (requestDTO.getResponse_format() != null && !requestDTO.getResponse_format().isEmpty()) {
-                fields.put("response_format", requestDTO.getResponse_format());
-            }
-
-            if (requestDTO.getPrompt() != null && !requestDTO.getPrompt().isEmpty()) {
-                fields.put("prompt", requestDTO.getPrompt());
-            }
-
-            // Создание списка файлов с указанием Content-Type
-            List<FilePart> fileParts = new ArrayList<>();
-            file.getContentType();
-            fileParts.add(new FilePart(
-                    "file",
-                    file.getOriginalFilename(),
-                    file.getBytes(),
-                    file.getContentType()
-            ));
-
-            String jsonResponse = ProxyApiHttpClient.sendMultipartPost(url, fields, fileParts, proxyApiKey);
-            log.debug("Received transcription response: {}", jsonResponse);
-
-            return objectMapper.readValue(jsonResponse, AudioResponseDTO.class);
-
-        } catch (IOException | InterruptedException e) {
-            log.error("Ошибка при транскрипции аудио (OpenAI): {}", e.getMessage(), e);
-            throw new ProxyApiException("Ошибка при транскрипции аудио (OpenAI)", e);
-        }
+        return processAudio(
+                file,
+                requestDTO,
+                "/v1/audio/transcriptions",
+                "transcription"
+        );
     }
 
     /**
      * Перевести аудио файл на английский.
-     *
-     * @param file       Аудио файл
-     * @param requestDTO Параметры перевода
-     * @return Ответ от OpenAI как AudioResponseDTO
      */
     public AudioResponseDTO translateAudio(MultipartFile file, AudioRequestDTO requestDTO) {
-        String url = baseUrl + "/v1/audio/translations";
+        return processAudio(
+                file,
+                requestDTO,
+                "/v1/audio/translations",
+                "translation"
+        );
+    }
+
+    /**
+     * Общая логика для обработки аудиофайла:
+     *
+     * @param file       аудиофайл, который нужно обработать
+     * @param requestDTO объект с параметрами запроса
+     * @param endpoint   часть URL, отличающаяся для транскрипции/перевода
+     * @param actionName строка для логирования, например "transcription" или "translation"
+     * @return DTO с ответом от OpenAI
+     */
+    private AudioResponseDTO processAudio(
+            MultipartFile file,
+            AudioRequestDTO requestDTO,
+            String endpoint,
+            String actionName
+    ) {
+        String url = baseUrl + endpoint;
         try {
             Map<String, String> fields = new HashMap<>();
             fields.put("model", requestDTO.getModel());
@@ -225,14 +214,12 @@ public class OpenAiService {
             if (requestDTO.getResponse_format() != null && !requestDTO.getResponse_format().isEmpty()) {
                 fields.put("response_format", requestDTO.getResponse_format());
             }
-
             if (requestDTO.getPrompt() != null && !requestDTO.getPrompt().isEmpty()) {
                 fields.put("prompt", requestDTO.getPrompt());
             }
 
-            // Создание списка файлов с указанием Content-Type
+            // Создаём список файлов
             List<FilePart> fileParts = new ArrayList<>();
-            file.getContentType();
             fileParts.add(new FilePart(
                     "file",
                     file.getOriginalFilename(),
@@ -240,14 +227,18 @@ public class OpenAiService {
                     file.getContentType()
             ));
 
+            // Отправляем запрос
             String jsonResponse = ProxyApiHttpClient.sendMultipartPost(url, fields, fileParts, proxyApiKey);
-            log.debug("Received translation response: {}", jsonResponse);
 
+            log.debug("Received {} response: {}", actionName, jsonResponse);
+
+            // Парсим JSON и возвращаем результат
             return objectMapper.readValue(jsonResponse, AudioResponseDTO.class);
 
         } catch (IOException | InterruptedException e) {
-            log.error("Ошибка при переводе аудио (OpenAI): {}", e.getMessage(), e);
-            throw new ProxyApiException("Ошибка при переводе аудио (OpenAI)", e);
+            String msg = String.format("Ошибка при %s аудио (OpenAI): %s", actionName, e.getMessage());
+            log.error(msg, e);
+            throw new ProxyApiException(msg, e);
         }
     }
 }
